@@ -36,7 +36,7 @@ func _ready() -> void:
 	camera.make_current()
 
 	_build_hud()
-	msg_label.text = "좀비가 몰려온다!\nWASD 이동 / 마우스 조준 / 좌클릭 발사 / R 재장전"
+	msg_label.text = "좀비가 몰려온다!\nWASD 이동 / 마우스 조준 / 좌클릭 발사 / R 재장전\n1~4 또는 휠로 무기 교체"
 
 
 func _build_world() -> void:
@@ -120,8 +120,9 @@ func _process(delta: float) -> void:
 	camera.global_position = camera.global_position.lerp(target, clampf(8.0 * delta, 0.0, 1.0))
 
 	# HUD
-	var ammo_text := "재장전 중..." if player.reloading else "%d / %d" % [player.ammo, player.MAG_SIZE]
-	stats_label.text = "HP %d   탄약 %s\n웨이브 %d   점수 %d" % [int(player.hp), ammo_text, wave, score]
+	var w: Dictionary = player.weapon()
+	var ammo_text := "재장전 중..." if player.reloading else "%d / %d" % [player.ammo[player.weapon_idx], w["mag"]]
+	stats_label.text = "HP %d   [%d] %s  %s\n웨이브 %d   점수 %d" % [int(player.hp), player.weapon_idx + 1, w["name"], ammo_text, wave, score]
 
 	if game_over:
 		if Input.is_physical_key_pressed(KEY_ENTER):
@@ -161,6 +162,7 @@ func _spawn_zombie() -> void:
 			break
 	var z: CharacterBody3D = ZombieScript.new()
 	z.main = self
+	z.hp = 3 + wave / 3  # 웨이브가 오를수록 단단해짐
 	z.speed = minf(2.5 + wave * 0.25, 6.0)
 	add_child(z)
 	z.global_position = pos
